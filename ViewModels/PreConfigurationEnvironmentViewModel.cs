@@ -6,9 +6,17 @@ using System.Linq;
 using System.Diagnostics;
 using Prism.Mvvm;
 using Prism.Commands;
+<<<<<<< HEAD
 using OpenessApp.Models;
 using OpenessApp.Properties;
 
+=======
+using System.Windows.Forms;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Diagnostics;
+using System.IO;
+>>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
 namespace OpenessApp.ViewModels
 {
     public class PreConfigurationEnvironmentViewModel : BindableBase
@@ -67,10 +75,37 @@ namespace OpenessApp.ViewModels
         // Lädt alle *.dll und filtert "Engineering"
         private void LoadModules()
         {
+<<<<<<< HEAD
             if (string.IsNullOrWhiteSpace(ModulePath))
             {
                 Debug.WriteLine("[LoadModules] ModulePath ist leer oder null.");
                 return;
+=======
+            ModulesAndOptions.Clear();
+
+            if (!Directory.Exists(ModulePath))
+            {
+                Trace.WriteLine($"Pfad existiert nicht: {ModulePath}");
+                return;
+            }
+
+            var dllFiles = Directory
+                .EnumerateFiles(ModulePath, "*.dll", SearchOption.AllDirectories)
+                .Where(f => Path.GetFileName(f).Contains("Engineering"));
+
+            foreach (var dll in dllFiles)
+            {
+                Trace.WriteLine($"Gefunden: {dll}");
+                var fileName = Path.GetFileName(dll);
+
+                ModulesAndOptions.Add(new TiaPortalModulesAndOptions
+                {
+                    AssemblyName = Path.GetFileNameWithoutExtension(fileName),
+                    EngineeringDll = fileName,
+                    VersionInfo = "V19",
+                    IsSelected = false
+                });
+>>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
             }
 
             if (!Directory.Exists(ModulePath))

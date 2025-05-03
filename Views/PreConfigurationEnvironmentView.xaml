@@ -54,7 +54,14 @@
             </Grid>
 
             <!-- Modulliste -->
+<<<<<<< HEAD
             <ListBox ItemsSource="{Binding Modules}">
+=======
+            <ListBox ItemsSource="{Binding ModulesAndOptions}"
+         SelectionMode="Extended"
+         ScrollViewer.VerticalScrollBarVisibility="Auto"
+         MinHeight="180">
+>>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:ModuleOption}">
                         <Grid>
@@ -66,6 +73,7 @@
 
                             <CheckBox Grid.Column="0"
                           Content="{Binding AssemblyName}"
+<<<<<<< HEAD
                           IsChecked="{Binding IsSelected, Mode=TwoWay}" />
 
                             <TextBlock Grid.Column="1"
@@ -75,6 +83,14 @@
                             <TextBlock Grid.Column="2"
                            Text="{Binding VersionInfo}"
                            HorizontalAlignment="Right"
+=======
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1"
+                           Text="{Binding EngineeringDll}"
+                           VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2"
+                           Text="{Binding VersionInfo}"
+>>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
                            VerticalAlignment="Center"/>
                         </Grid>
                     </DataTemplate>
@@ -82,7 +98,10 @@
             </ListBox>
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
             <!-- Bestätigungsbutton -->
             <Button Content="Confirm"
                     Height="30"
