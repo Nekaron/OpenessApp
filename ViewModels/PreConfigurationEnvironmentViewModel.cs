@@ -5,6 +5,8 @@ using Prism.Commands;
 using System.Windows.Forms;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Diagnostics;
+using System.IO;
 namespace OpenessApp.ViewModels
 {
     public class PreConfigurationEnvironmentViewModel : BindableBase
@@ -48,21 +50,26 @@ namespace OpenessApp.ViewModels
         {
             ModulesAndOptions.Clear();
 
-            if (!System.IO.Directory.Exists(ModulePath))
-                return;
-
-            var dllFiles = System.IO.Directory
-                .EnumerateFiles(ModulePath, "*.Engineering.dll", System.IO.SearchOption.AllDirectories);
-
-            foreach (var dllPath in dllFiles)
+            if (!Directory.Exists(ModulePath))
             {
-                var fileName = System.IO.Path.GetFileName(dllPath);
+                Trace.WriteLine($"Pfad existiert nicht: {ModulePath}");
+                return;
+            }
+
+            var dllFiles = Directory
+                .EnumerateFiles(ModulePath, "*.dll", SearchOption.AllDirectories)
+                .Where(f => Path.GetFileName(f).Contains("Engineering"));
+
+            foreach (var dll in dllFiles)
+            {
+                Trace.WriteLine($"Gefunden: {dll}");
+                var fileName = Path.GetFileName(dll);
 
                 ModulesAndOptions.Add(new TiaPortalModulesAndOptions
                 {
-                    AssemblyName = System.IO.Path.GetFileNameWithoutExtension(fileName),
+                    AssemblyName = Path.GetFileNameWithoutExtension(fileName),
                     EngineeringDll = fileName,
-                    VersionInfo = "V19", // optional: automatisierbar
+                    VersionInfo = "V19",
                     IsSelected = false
                 });
             }
