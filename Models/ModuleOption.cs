@@ -5,20 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace OpenessApp.Models
+public class ModuleOption        // Models/ModuleOption.cs
 {
-    public class ModuleOption
-    {
-        // Name des Moduls (z.B. "Step7")
-        public string AssemblyName { get; set; }
-
-        // Name der DLL (z.B. "Step7.Engineering.dll")
-        public string EngineeringDll { get; set; }
-
-        // Versionsinfo, hier fest vorgegeben oder über den Pfad ermittelt
-        public string VersionInfo { get; set; }
-
-        // Ob das Modul ausgewählt ist
-        public bool IsSelected { get; set; }
-    }
+    public string AssemblyName { get; set; }   // „Step7“
+    public string EngineeringDll { get; set; }   // „Step7.Engineering.dll“
+    public string VersionInfo { get; set; }   // „V19“
+    public bool IsSelected { get; set; }
 }

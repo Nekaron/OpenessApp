@@ -1,43 +1,92 @@
 ﻿<Window x:Class="OpenessApp.Views.PreConfigurationEnvironmentView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:prism="http://prismlibrary.com/"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:behaviors="clr-namespace:OpenessApp.Behaviors"
-        Title="Module Pre-Selection" Height="400" Width="550"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:OpenessApp.ViewModels"
+        xmlns:conv="clr-namespace:OpenessApp.Converters"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize"
-        WindowStyle="ToolWindow">
-    <i:Interaction.Behaviors>
-        <behaviors:WindowCloser DialogResult="{Binding DialogResult}" />
-    </i:Interaction.Behaviors>
-    <DockPanel LastChildFill="True" Margin="10">
-        <!-- Pfad -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-            <Label Content="Module Path:" VerticalAlignment="Center" />
-            <TextBox Text="{Binding ModulePath, UpdateSourceTrigger=PropertyChanged}"
-                     Width="350" Margin="5,0" VerticalContentAlignment="Center"/>
-            <Button Content="…" Width="30" Command="{Binding BrowsePathCommand}"/>
-        </StackPanel>
+        mc:Ignorable="d"
+        Title="Pre‑Configuration Environment"
+        Height="450" Width="800"
+        WindowStartupLocation="CenterScreen">
 
-        <!-- Module -->
-        <ListBox ItemsSource="{Binding Modules}" SelectionMode="Multiple">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <DockPanel>
-                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                  Content="{Binding AssemblyName}" Width="200"/>
-                        <TextBlock Text="{Binding EngineeringDll}" Width="200" Margin="10,0"/>
-                        <TextBlock Text="{Binding VersionInfo}" Width="60"/>
-                    </DockPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+    <Window.Resources>
+        <conv:StepToVisibilityConverter x:Key="StepVis"/>
+    </Window.Resources>
 
-        <!-- Bestätigung -->
-        <Button Content="Confirm" Height="30" Width="100"
-                HorizontalAlignment="Right" Margin="0,10,0,0"
-                Command="{Binding ConfirmCommand}" IsDefault="True"/>
-    </DockPanel>
+    <!-- ########  EIN Root‑Grid  ######## -->
+    <Grid>
+
+        <!-- ============  Schritt 1  ============ -->
+        <Grid x:Name="VersionPage"
+              Visibility="{Binding Step, Converter={StaticResource StepVis}, ConverterParameter=SelectVersions}"
+              Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Engineering‑Version:" FontWeight="SemiBold"/>
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding EngineeringVersions}"
+                     SelectedItem="{Binding SelectedEngineeringVersion}"
+                     Height="120"/>
+
+            <TextBlock Grid.Column="1" Text="Openness‑API Version:" FontWeight="SemiBold"/>
+            <ListBox  Grid.Column="1" Grid.Row="1"
+                      ItemsSource="{Binding OpennessVersions}"
+                      SelectedItem="{Binding SelectedApiVersion}"
+                      Height="120"/>
+
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button Content="Weiter"
+                        Command="{Binding ConfirmVersionCommand}"
+                        Width="90" IsDefault="True"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ============  Schritt 2  ============ -->
+        <Grid x:Name="ModulePage"
+              Visibility="{Binding Step, Converter={StaticResource StepVis}, ConverterParameter=SelectModules}"
+              Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <DataGrid ItemsSource="{Binding Modules}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      SelectionMode="Extended">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Binding="{Binding IsSelected}"
+                                            Width="60" Header="Load?"/>
+                    <DataGridTextColumn    Binding="{Binding Name}"
+                                            Header="Module" Width="*"/>
+                    <DataGridTextColumn    Binding="{Binding Version}"
+                                            Header="Version" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal"
+                        HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button Content="Zurück"
+                        Command="{Binding BackCommand}"
+                        Width="90"/>
+                <Button Content="OK"
+                        Margin="10,0,0,0"
+                        Command="{Binding ConfirmModulesCommand}"
+                        Width="90" IsDefault="True"/>
+            </StackPanel>
+        </Grid>
+
+    </Grid>
 </Window>

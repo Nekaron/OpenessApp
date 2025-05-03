@@ -8,18 +8,14 @@ namespace OpenessApp.Views
         public PreConfigurationEnvironmentView()
         {
             InitializeComponent();
+            Loaded += PreConfigurationEnvironmentView_Loaded;
+        }
 
-            if (DataContext is PreConfigurationEnvironmentViewModel vm)
-            {
-                vm.PropertyChanged += (s, e) =>
-                {
-                    if (e.PropertyName == nameof(vm.DialogResult) && vm.DialogResult == true)
-                    {
-                        DialogResult = true;
-                        Close();
-                    }
-                };
-            }
+        private void PreConfigurationEnvironmentView_Loaded(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as PreConfigurationEnvironmentViewModel;
+            if (vm != null)
+                vm.OnLoaded();
         }
     }
 }
