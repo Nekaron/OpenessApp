@@ -54,31 +54,34 @@
             </Grid>
 
             <!-- Modulliste -->
-            <ListBox ItemsSource="{Binding ModulesAndOptions}"
-                     MinHeight="180"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     SelectionMode="Extended">
+            <ListBox ItemsSource="{Binding Modules}">
                 <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:TiaPortalModulesAndOptions}">
+                    <DataTemplate DataType="{x:Type models:ModuleOption}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
                             </Grid.ColumnDefinitions>
+
                             <CheckBox Grid.Column="0"
-                                      Content="{Binding AssemblyName}"
-                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                          Content="{Binding AssemblyName}"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+
                             <TextBlock Grid.Column="1"
-                                       Text="{Binding EngineeringDll}"
-                                       VerticalAlignment="Center"/>
+                           Text="{Binding FileName}"
+                           VerticalAlignment="Center"/>
+
                             <TextBlock Grid.Column="2"
-                                       Text="{Binding VersionInfo}"
-                                       VerticalAlignment="Center"/>
+                           Text="{Binding VersionInfo}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+
 
             <!-- Bestätigungsbutton -->
             <Button Content="Confirm"
