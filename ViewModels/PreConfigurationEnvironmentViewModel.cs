@@ -3,54 +3,47 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using Prism.Mvvm;
 using Prism.Commands;
-<<<<<<< HEAD
+using Prism.Mvvm;
 using OpenessApp.Models;
 using OpenessApp.Properties;
 
-=======
-using System.Windows.Forms;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Diagnostics;
-using System.IO;
->>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
 namespace OpenessApp.ViewModels
 {
     public class PreConfigurationEnvironmentViewModel : BindableBase
     {
-        // 1️⃣ Modulpfad (Standard aus Settings oder Fallback)
+        // 1️⃣ Der bekannte Siemens-Engineering-DLL-Namen
+        private readonly string[] _knownModules = new[]
+        {
+            "Step7.Engineering.dll",
+            "WinCC.Engineering.dll",
+            "Startdrive.Engineering.dll",
+            "WinCCUnified.Engineering.dll",
+            // …weitere Module hier ergänzen…
+        };
+
+        // 2️⃣ Der Pfad, in dem wir suchen (Standard aus Settings)
         private string _modulePath = Settings.Default.SelectedModulePath
-                                     ?? @"c:\Program Files\Siemens\Automation\Portal V19\PublicAPI\V19";
+                                     ?? @"C:\ProgramData\Siemens\TIA\Modules";
         public string ModulePath
         {
             get => _modulePath;
             set
             {
-                if (string.IsNullOrWhiteSpace(value) || !Directory.Exists(value))
-                {
-                    Debug.WriteLine($"[ModulePath] Ungültiger Pfad: {value}");
-                    return;
-                }
-
                 if (SetProperty(ref _modulePath, value))
-                {
-                    LoadModules(); // Neu laden, wenn der Pfad gültig ist
-                }
+                    LoadModulesStatic();  // bei Änderung neu laden
             }
         }
 
-        // 2️⃣ Sammlung aller gefundenen Module (niemals null)
-        public ObservableCollection<TiaPortalModulesAndOptions> ModulesAndOptions { get; }
-            = new ObservableCollection<TiaPortalModulesAndOptions>();
+        // 3️⃣ Sammlung der gefundenen Module (niemals null)
+        public ObservableCollection<ModuleOption> Modules { get; }
+            = new ObservableCollection<ModuleOption>();
 
-        // 3️⃣ Commands für UI-Buttons
+        // 4️⃣ Commands
         public DelegateCommand ConfirmationCommand { get; }
-        public DelegateCommand GetPathFromModulesAndOptionsCommand { get; }
+        public DelegateCommand BrowsePathCommand { get; }
 
-        // 4️⃣ DialogResult für das Fenster-Close-Behavior
+        // 5️⃣ DialogResult für das Schließen des Fensters
         private bool? _dialogResult;
         public bool? DialogResult
         {
@@ -58,85 +51,61 @@ namespace OpenessApp.ViewModels
             set => SetProperty(ref _dialogResult, value);
         }
 
-        // Konstruktor
         public PreConfigurationEnvironmentViewModel()
         {
-            if (!Directory.Exists(ModulePath))
-            {
-                Debug.WriteLine($"[Konstruktor] Standardpfad ungültig: {ModulePath}");
-                ModulePath = @"C:\Fallback\Pfad"; // Alternativer Fallback
-            }
+            // Module sofort beim Start laden
+            LoadModulesStatic();
 
-            LoadModules();
+            // Commands belegen
             ConfirmationCommand = new DelegateCommand(OnConfirm);
-            GetPathFromModulesAndOptionsCommand = new DelegateCommand(OnSelectPath);
+            BrowsePathCommand = new DelegateCommand(OnBrowsePath);
         }
 
-        // Lädt alle *.dll und filtert "Engineering"
-        private void LoadModules()
+        /// <summary>
+        /// Variante 1: Prüft im Verzeichnis, welche der _knownModules existieren
+        /// </summary>
+        private void LoadModulesStatic()
         {
-<<<<<<< HEAD
-            if (string.IsNullOrWhiteSpace(ModulePath))
-            {
-                Debug.WriteLine("[LoadModules] ModulePath ist leer oder null.");
-                return;
-=======
-            ModulesAndOptions.Clear();
+            Modules.Clear();
 
             if (!Directory.Exists(ModulePath))
-            {
-                Trace.WriteLine($"Pfad existiert nicht: {ModulePath}");
                 return;
-            }
 
-            var dllFiles = Directory
-                .EnumerateFiles(ModulePath, "*.dll", SearchOption.AllDirectories)
-                .Where(f => Path.GetFileName(f).Contains("Engineering"));
-
-            foreach (var dll in dllFiles)
+            foreach (var dll in _knownModules)
             {
-                Trace.WriteLine($"Gefunden: {dll}");
-                var fileName = Path.GetFileName(dll);
-
-                ModulesAndOptions.Add(new TiaPortalModulesAndOptions
+                var fullPath = Path.Combine(ModulePath, dll);
+                if (File.Exists(fullPath))
                 {
-                    AssemblyName = Path.GetFileNameWithoutExtension(fileName),
-                    EngineeringDll = fileName,
-                    VersionInfo = "V19",
-                    IsSelected = false
-                });
->>>>>>> 5aba915bd0cdf84b17be0298ee933c7b7830a3c8
+                    Modules.Add(new ModuleOption(fullPath)
+                    {
+                        IsSelected = true  // per default vorausgewählt
+                    });
+                }
             }
 
-            if (!Directory.Exists(ModulePath))
+            // Falls der Anwender bereits gespeichert hatte, Auswahl nachladen
+            var saved = Settings.Default.SelectedModules;
+            if (!string.IsNullOrWhiteSpace(saved))
             {
-                Debug.WriteLine($"[LoadModules] Pfad existiert nicht: {ModulePath}");
-                return;
+                var sel = saved.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var m in Modules)
+                    m.IsSelected = sel.Contains(m.AssemblyName);
             }
-
-            ModulesAndOptions.Clear();
-            Debug.WriteLine($"[LoadModules] Suche in: {ModulePath}");
-
-            // Restlicher Code...
         }
 
-        // Wird beim Klick auf "Confirm" ausgeführt
         private void OnConfirm()
         {
-            // Pfad + Auswahl in Settings speichern
+            // Speichern
             Settings.Default.SelectedModulePath = ModulePath;
-            var chosen = ModulesAndOptions
-                .Where(m => m.IsSelected)
-                .Select(m => m.AssemblyName);
+            var chosen = Modules.Where(m => m.IsSelected)
+                                .Select(m => m.AssemblyName);
             Settings.Default.SelectedModules = string.Join(";", chosen);
             Settings.Default.Save();
 
-            // Dialog schließen
             DialogResult = true;
         }
 
-        // Öffnet Verzeichnis-Dialog (WinForms) und lädt danach neu
-        private void OnSelectPath()
+        private void OnBrowsePath()
         {
             using (var dlg = new System.Windows.Forms.FolderBrowserDialog
             {
@@ -144,11 +113,8 @@ namespace OpenessApp.ViewModels
                 SelectedPath = ModulePath
             })
             {
-                var result = dlg.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK)
-                {
+                if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     ModulePath = dlg.SelectedPath;
-                }
             }
         }
     }
