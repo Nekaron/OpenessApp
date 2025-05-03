@@ -6,6 +6,9 @@ using OpenessApp.Views;
 using OpenessApp.ViewModels;
 using OpenessApp.Adapter;
 using System.Windows.Controls;
+using System.Linq;
+using System.Reflection;
+using System.IO;
 
 namespace OpenessApp
 {
@@ -14,44 +17,41 @@ namespace OpenessApp
         // Wird nach App.Start() automatisch von Prism aufgerufen
         protected override void OnInitialized()
         {
-            // 1️⃣ Auswahl der TIA- und API-Version
-            var tiaDialog = new PreSelectionAssemblyVersionView();
-            if (tiaDialog.ShowDialog() != true)
+            // 1.) Version-Auswahl (bestehender Code)…
+            var versionDialog = Container.Resolve<PreSelectionAssemblyVersionView>();
+            if (versionDialog.ShowDialog() != true)
             {
-                Shutdown(); // Benutzer hat abgebrochen
+                Shutdown();
                 return;
             }
 
-            var tiaVm = tiaDialog.DataContext as PreSelectionAssemblyVersionViewModel;
-            if (tiaVm != null)
+            // 2.) Jetzt PreConfigurationEnvironment öffnen
+            var preEnvDialog = Container.Resolve<PreConfigurationEnvironmentView>();
+            var preEnvVm = (PreConfigurationEnvironmentViewModel)preEnvDialog.DataContext;
+            if (preEnvDialog.ShowDialog() != true)
             {
-                string tia = tiaVm.SelectedEngineeringVersion;
-                string api = tiaVm.SelectedApiVersion;
-                MessageBox.Show("Gewählt: TIA " + tia + ", API " + api);
-            }
-
-            // 2️⃣ Modulauswahl anzeigen (als echtes Dialogfenster)
-            var configDialog = new PreConfigurationEnvironmentView();
-            if (configDialog.ShowDialog() != true)
-            {
-                Shutdown(); // Benutzer hat abgebrochen
+                // Benutzer hat abgebrochen
+                Shutdown();
                 return;
             }
 
-            // 3️⃣ Region-Manager laden
-            var regionManager = Container.Resolve<IRegionManager>();
-            regionManager.RequestNavigate("NavigationRegion", "NavigationView");
-            regionManager.RequestNavigate("LogRegion", "TraceLogView");
+            // 3.) Ausgewählte Module laden
+            var moduleProvider = Container.Resolve<IModuleProvider>();
+            foreach (var opt in preEnvVm.Modules.Where(m => m.IsSelected))
+            {
+                // DLL-Pfad zusammenbauen
+                var dllPath = Path.Combine(preEnvVm.ModulePath, opt.EngineeringDll);
+                var asm = Assembly.LoadFrom(dllPath);
+                moduleProvider.AddModule(asm);
+            }
 
-            // 4️⃣ Log initialisieren
-            var log = Container.Resolve<Services.TraceLogService>();
-            log.Write("TIA geladen.");
-            log.Write("StartView geöffnet.");
-            log.Write("Dies ist eine Info-Meldung.", "INFO");
-            log.Write("Das ist ein Fehler!", "ERROR");
-            log.Write("Achtung, mögliche Warnung!", "WARN");
+            // 4.) Service konfigurieren
+            moduleProvider.ConfigureServices(
+                preEnvVm.SelectedEngineeringVersion,
+                preEnvVm.SelectedApiVersion);
 
-            base.OnInitialized(); // Wichtig: danach Shell anzeigen
+            // 5.) Shell anzeigen
+            base.OnInitialized();
         }
 
         // Prism erzeugt und zeigt dieses Fenster als Hauptfenster

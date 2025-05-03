@@ -7,8 +7,11 @@ namespace OpenessApp.Behaviors
     public class WindowCloser : Behavior<Window>
     {
         public static readonly DependencyProperty DialogResultProperty =
-            DependencyProperty.Register(nameof(DialogResult), typeof(bool?), typeof(WindowCloser),
-                new PropertyMetadata(DialogResultChanged));
+            DependencyProperty.Register(
+                nameof(DialogResult),
+                typeof(bool?),
+                typeof(WindowCloser),
+                new PropertyMetadata(null, OnDialogResultChanged));
 
         public bool? DialogResult
         {
@@ -16,45 +19,15 @@ namespace OpenessApp.Behaviors
             set => SetValue(DialogResultProperty, value);
         }
 
-        private static void DialogResultChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnDialogResultChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is Window window)
+            if (d is Window window && e.NewValue is bool dialogResult)
             {
-                if (!window.IsLoaded || !window.IsVisible)
-                {
-                    // Verzögert setzen, sobald das Fenster wirklich sichtbar ist
-                    window.Loaded += (s, ev) =>
-                    {
-                        TrySetDialogResult(window, e.NewValue);
-                    };
-                }
+                if (window.IsLoaded)
+                    window.DialogResult = dialogResult;
                 else
-                {
-                    TrySetDialogResult(window, e.NewValue);
-                }
+                    window.Loaded += (_, __) => window.DialogResult = dialogResult;
             }
-        }
-
-        private static void TrySetDialogResult(Window window, object newValue)
-        {
-            // Muss mit ShowDialog geöffnet worden sein, sonst Exception
-            if (newValue is bool result && window != null && window.IsVisible)
-            {
-                try
-                {
-                    window.DialogResult = result;
-                }
-                catch (InvalidOperationException)
-                {
-                    // Ignorieren, falls Fenster nicht als Dialog angezeigt wurde
-                }
-            }
-        }
-
-        protected override void OnAttached()
-        {
-            base.OnAttached();
-            AssociatedObject.Closed += (s, e) => SetCurrentValue(DialogResultProperty, null);
         }
     }
 }

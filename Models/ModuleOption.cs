@@ -7,39 +7,18 @@ using System.Runtime.CompilerServices;
 
 namespace OpenessApp.Models
 {
-    public class ModuleOption : INotifyPropertyChanged
+    public class ModuleOption
     {
-        public string AssemblyName { get; }
-        public string FileName { get; }
-        public string FullPath { get; }
-        public string VersionInfo { get; }
+        // Name des Moduls (z.B. "Step7")
+        public string AssemblyName { get; set; }
 
-        private bool _isSelected;
-        public bool IsSelected
-        {
-            get { return _isSelected; }
-            set { _isSelected = value; OnPropertyChanged(); }
-        }
+        // Name der DLL (z.B. "Step7.Engineering.dll")
+        public string EngineeringDll { get; set; }
 
-        public ModuleOption(string fullPath)
-        {
-            if (!File.Exists(fullPath))
-                throw new FileNotFoundException(fullPath);
+        // Versionsinfo, hier fest vorgegeben oder über den Pfad ermittelt
+        public string VersionInfo { get; set; }
 
-            FullPath = fullPath;
-            FileName = Path.GetFileName(fullPath);
-            AssemblyName = Path.GetFileNameWithoutExtension(FileName);
-
-            var fvi = FileVersionInfo.GetVersionInfo(fullPath);
-            VersionInfo = fvi.FileVersion ?? "n/a";
-        }
-
-        // INotifyPropertyChanged‑Implementierung
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string prop = null)
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
-        }
+        // Ob das Modul ausgewählt ist
+        public bool IsSelected { get; set; }
     }
 }

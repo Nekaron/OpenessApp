@@ -1,49 +1,36 @@
-﻿// ViewModels/PreConfigurationEnvironmentViewModel.cs
-using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using Prism.Commands;
-using Prism.Mvvm;
-using OpenessApp.Models;
+﻿using OpenessApp.Models;
 using OpenessApp.Properties;
+using Prism.Mvvm;
+using Prism.Commands;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.IO;
+using System.Windows.Forms; // Für FolderBrowserDialog
 
 namespace OpenessApp.ViewModels
 {
     public class PreConfigurationEnvironmentViewModel : BindableBase
     {
-        // 1️⃣ Der bekannte Siemens-Engineering-DLL-Namen
-        private readonly string[] _knownModules = new[]
-        {
-            "Step7.Engineering.dll",
-            "WinCC.Engineering.dll",
-            "Startdrive.Engineering.dll",
-            "WinCCUnified.Engineering.dll",
-            // …weitere Module hier ergänzen…
-        };
-
-        // 2️⃣ Der Pfad, in dem wir suchen (Standard aus Settings)
-        private string _modulePath = Settings.Default.SelectedModulePath
-                                     ?? @"C:\ProgramData\Siemens\TIA\Modules";
+        // 1) Speichert den aktuellen Modulpfad
+        private string _modulePath = Settings.Default.SelectedModulePath;
         public string ModulePath
         {
             get => _modulePath;
             set
             {
                 if (SetProperty(ref _modulePath, value))
-                    LoadModulesStatic();  // bei Änderung neu laden
+                    LoadModules();
             }
         }
 
-        // 3️⃣ Sammlung der gefundenen Module (niemals null)
+        // 2) Liste aller Module im aktuellen Pfad
         public ObservableCollection<ModuleOption> Modules { get; }
-            = new ObservableCollection<ModuleOption>();
 
-        // 4️⃣ Commands
-        public DelegateCommand ConfirmationCommand { get; }
+        // 3) Commands für UI
+        public DelegateCommand ConfirmCommand { get; }
         public DelegateCommand BrowsePathCommand { get; }
 
-        // 5️⃣ DialogResult für das Schließen des Fensters
+        // 4) DialogResult zum Schließen der View
         private bool? _dialogResult;
         public bool? DialogResult
         {
@@ -53,43 +40,30 @@ namespace OpenessApp.ViewModels
 
         public PreConfigurationEnvironmentViewModel()
         {
-            // Module sofort beim Start laden
-            LoadModulesStatic();
-
-            // Commands belegen
-            ConfirmationCommand = new DelegateCommand(OnConfirm);
-            BrowsePathCommand = new DelegateCommand(OnBrowsePath);
+            Modules = new ObservableCollection<ModuleOption>();
+            ConfirmCommand = new DelegateCommand(OnConfirm);
+            BrowsePathCommand = new DelegateCommand(OnBrowse);
+            LoadModules(); // initial befüllen
         }
 
-        /// <summary>
-        /// Variante 1: Prüft im Verzeichnis, welche der _knownModules existieren
-        /// </summary>
-        private void LoadModulesStatic()
+        private void LoadModules()
         {
             Modules.Clear();
-
             if (!Directory.Exists(ModulePath))
                 return;
 
-            foreach (var dll in _knownModules)
+            var dlls = Directory.EnumerateFiles(ModulePath, "*.Engineering.dll", SearchOption.AllDirectories);
+            foreach (var path in dlls)
             {
-                var fullPath = Path.Combine(ModulePath, dll);
-                if (File.Exists(fullPath))
+                var file = Path.GetFileName(path);
+                var name = Path.GetFileNameWithoutExtension(file);
+                Modules.Add(new ModuleOption
                 {
-                    Modules.Add(new ModuleOption(fullPath)
-                    {
-                        IsSelected = true  // per default vorausgewählt
-                    });
-                }
-            }
-
-            // Falls der Anwender bereits gespeichert hatte, Auswahl nachladen
-            var saved = Settings.Default.SelectedModules;
-            if (!string.IsNullOrWhiteSpace(saved))
-            {
-                var sel = saved.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var m in Modules)
-                    m.IsSelected = sel.Contains(m.AssemblyName);
+                    AssemblyName = name,
+                    EngineeringDll = file,
+                    VersionInfo = "V19",
+                    IsSelected = Settings.Default.SelectedModules?.Split(';').Contains(name) == true
+                });
             }
         }
 
@@ -97,24 +71,25 @@ namespace OpenessApp.ViewModels
         {
             // Speichern
             Settings.Default.SelectedModulePath = ModulePath;
-            var chosen = Modules.Where(m => m.IsSelected)
-                                .Select(m => m.AssemblyName);
-            Settings.Default.SelectedModules = string.Join(";", chosen);
+            var selected = Modules.Where(m => m.IsSelected).Select(m => m.AssemblyName);
+            Settings.Default.SelectedModules = string.Join(";", selected);
             Settings.Default.Save();
 
             DialogResult = true;
         }
 
-        private void OnBrowsePath()
+        private void OnBrowse()
         {
-            using (var dlg = new System.Windows.Forms.FolderBrowserDialog
+            using (var dlg = new FolderBrowserDialog
             {
                 Description = "Modulverzeichnis auswählen",
                 SelectedPath = ModulePath
             })
             {
-                if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                if(dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
                     ModulePath = dlg.SelectedPath;
+                }
             }
         }
     }
