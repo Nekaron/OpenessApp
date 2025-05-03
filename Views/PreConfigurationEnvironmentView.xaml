@@ -1,0 +1,92 @@
+﻿<Window
+    x:Class="OpenessApp.Views.PreConfigurationEnvironmentView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:viewModels="clr-namespace:OpenessApp.ViewModels"
+    xmlns:models="clr-namespace:OpenessApp.Models"
+    xmlns:behaviors="clr-namespace:OpenessApp.Behaviors"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    Title="Pre-Configuration Modules"
+    Width="500"
+    Height="350"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="ToolWindow"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=viewModels:PreConfigurationEnvironmentViewModel, IsDesignTimeCreatable=True}">
+
+    <i:Interaction.Behaviors>
+        <behaviors:WindowCloser DialogResult="{Binding DialogResult}" />
+    </i:Interaction.Behaviors>
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Blaue Siemens-Umrandung -->
+        <Border Height="2" Background="#FF3B4461" DockPanel.Dock="Top"/>
+        <Border Height="2" Background="#FF3B4461" DockPanel.Dock="Bottom"/>
+        <Border Width="2" Background="#FF3B4461" DockPanel.Dock="Left"/>
+        <Border Width="2" Background="#FF3B4461" DockPanel.Dock="Right"/>
+
+        <StackPanel Margin="10">
+
+            <!-- Pfad-Eingabe -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Module path:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding ModulePath, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center"
+                         MinWidth="300"/>
+                <Button Grid.Column="2"
+                        Content="..."
+                        Width="30"
+                        Margin="5,0,0,0"
+                        Command="{Binding GetPathFromModulesAndOptionsCommand}"/>
+            </Grid>
+
+            <!-- Modulliste -->
+            <ListBox ItemsSource="{Binding ModulesAndOptions}"
+                     MinHeight="180"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     SelectionMode="Extended">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:TiaPortalModulesAndOptions}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="60"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0"
+                                      Content="{Binding AssemblyName}"
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding EngineeringDll}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding VersionInfo}"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Bestätigungsbutton -->
+            <Button Content="Confirm"
+                    Height="30"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"
+                    IsDefault="True"
+                    Command="{Binding ConfirmationCommand}"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

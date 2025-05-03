@@ -1,0 +1,12 @@
+﻿<UserControl x:Class="OpenessApp.Views.StartView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <TextBlock Text="Willkommen zur OpenessApp!"
+                   FontSize="20" 
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding TiaVersion}" FontSize="16"/>
+        <TextBlock Text="{Binding ApiVersion}" FontSize="16"/>
+    </Grid>
+</UserControl>

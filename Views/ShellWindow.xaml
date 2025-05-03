@@ -1,0 +1,48 @@
+﻿<Window x:Class="OpenessApp.Views.ShellWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:prism="http://prismlibrary.com/"
+        Title="OpenessApp Shell"
+        Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid>
+        <!-- Grid-Aufteilung in Zeilen -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Kopfzeile / Menü (optional) -->
+            <RowDefinition Height="*"/>
+            <!-- Hauptinhalt -->
+            <RowDefinition Height="Auto"/>
+            <!-- Log-Anzeige unten -->
+        </Grid.RowDefinitions>
+
+        <!-- Grid-Aufteilung in Spalten -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <!-- Navigation links -->
+            <ColumnDefinition Width="*"/>
+            <!-- Inhalt rechts -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Region für Navigation -->
+        <StackPanel prism:RegionManager.RegionName="NavigationRegion"
+                    Grid.Row="1" Grid.Column="0"
+                    Background="#EEE"
+                    Margin="5"/>
+
+        <!-- Region für dynamisch geladenen Hauptinhalt -->
+        <ContentControl prism:RegionManager.RegionName="ContentRegion"
+                        Grid.Row="1" Grid.Column="1"
+                        Margin="5"/>
+
+        <!-- Region für TraceLog (einzige gültige LogRegion!) -->
+        <ItemsControl prism:RegionManager.RegionName="LogRegion"
+                      Grid.Row="2" Grid.ColumnSpan="2"
+                      Background="#F0F0F0"
+                      Margin="5"
+                      FontFamily="Consolas"
+                      FontSize="12"
+                      MinHeight="80" />
+    </Grid>
+</Window>
